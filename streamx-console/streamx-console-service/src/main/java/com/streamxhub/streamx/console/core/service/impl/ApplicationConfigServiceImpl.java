@@ -1,23 +1,22 @@
 /*
  * Copyright (c) 2019 The StreamX Project
- * <p>
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.streamxhub.streamx.console.core.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,7 +40,6 @@ import com.streamxhub.streamx.console.core.service.ApplicationConfigService;
 import com.streamxhub.streamx.console.core.service.EffectiveService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -49,8 +47,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -67,7 +63,7 @@ public class ApplicationConfigServiceImpl
 
     private String flinkConfTemplate = null;
 
-    private String PROD_ENV_NAME = "prod";
+    private String prodEnvName = "prod";
 
     @Autowired
     private ApplicationContext context;
@@ -242,21 +238,12 @@ public class ApplicationConfigServiceImpl
     @Override
     public synchronized String readTemplate() {
         if (flinkConfTemplate == null) {
-            String[] activeProfiles = context.getEnvironment().getActiveProfiles();
-            String path;
-            if (ArrayUtils.isNotEmpty(activeProfiles) && activeProfiles[0].equals(PROD_ENV_NAME)) {
-                //生产环境部署读取conf/flink-application.template
-                path = WebUtils.getAppDir("conf").concat("/flink-application.template");
-            } else {
-                URL url = Thread.currentThread().getContextClassLoader().getResource("flink-application.template");
-                assert url != null;
-                path = url.getPath();
-            }
-            File file = new File(path);
             try {
+                File file = new File(WebUtils.getAppDir("conf").concat("/flink-application.template"));
                 String conf = FileUtils.readFileToString(file);
                 this.flinkConfTemplate = Base64.getEncoder().encodeToString(conf.getBytes());
-            } catch (IOException e) {
+            } catch (Exception e) {
+                log.error("Read conf/flink-application.template failed, please check your deployment");
                 e.printStackTrace();
             }
         }
